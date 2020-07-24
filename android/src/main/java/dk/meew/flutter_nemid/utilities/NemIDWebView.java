@@ -10,8 +10,6 @@ import android.view.inputmethod.InputConnection;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
-/* Webview extension to handle customizations such as optimization of keyboard handling
- */
 public class NemIDWebView extends WebView {
 
     Context context;
@@ -50,9 +48,7 @@ public class NemIDWebView extends WebView {
     @Override
     public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
 
-
         if (shouldApplyBackspaceFix()) {
-
             InputConnectionForBackspaceIssues baseInputConnection = new InputConnectionForBackspaceIssues(this, false);
 
             outAttrs.actionLabel = null;
@@ -62,17 +58,14 @@ public class NemIDWebView extends WebView {
                     outAttrs.inputType = inputType;
                     inputType = 0;
                 }
-            }
-            else{
+            } else {
                 outAttrs.inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD;
             }
-
             outAttrs.imeOptions = EditorInfo.IME_ACTION_DONE;
 
             return baseInputConnection;
 
-
-        } else {//Apply numeric keyboard fix for newer API levels
+        } else {
             InputConnection conn = super.onCreateInputConnection(outAttrs);
             if (inputType != 0) {
                 outAttrs.inputType = inputType;
@@ -86,7 +79,6 @@ public class NemIDWebView extends WebView {
         @JavascriptInterface
         @SuppressWarnings("unused") // setKeyboardType is called from JavaScript
         public void setKeyboardType(String data) {
-
             boolean is4Digit = false;
             boolean isAlpha = false;
             try {
@@ -104,5 +96,4 @@ public class NemIDWebView extends WebView {
             }
         }
     }
-
 }

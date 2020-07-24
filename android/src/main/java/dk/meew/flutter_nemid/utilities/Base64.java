@@ -12,7 +12,6 @@ public class Base64
 {
     private static final Base64Encoder encoder = new Base64Encoder();
 
-
     public static String encode(String data) {
         try {
             return encode(data.getBytes("utf-8"));
@@ -30,13 +29,9 @@ public class Base64
     {
         int len = (data.length + 2) / 3 * 4;
         ByteArrayOutputStream bOut = new ByteArrayOutputStream(len);
-
-        try
-        {
+        try {
             encoder.encode(data, 0, data.length, bOut);
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             throw new RuntimeException("exception encoding base64 string: " + e);
         }
 
@@ -53,18 +48,13 @@ public class Base64
      *
      * @return a byte array representing the decoded data.
      */
-    public static byte[] decode(
-            String    data)
-    {
+    public static byte[] decode(String data){
         int len = data.length() / 4 * 3;
         ByteArrayOutputStream bOut = new ByteArrayOutputStream(len);
 
-        try
-        {
+        try{
             encoder.decode(data, bOut);
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             throw new RuntimeException("exception decoding base64 string: " + e);
         }
 
@@ -72,10 +62,8 @@ public class Base64
     }
 }
 
-class Base64Encoder
-{
-    protected final byte[] encodingTable =
-            {
+class Base64Encoder {
+    protected final byte[] encodingTable = {
                     (byte)'A', (byte)'B', (byte)'C', (byte)'D', (byte)'E', (byte)'F', (byte)'G',
                     (byte)'H', (byte)'I', (byte)'J', (byte)'K', (byte)'L', (byte)'M', (byte)'N',
                     (byte)'O', (byte)'P', (byte)'Q', (byte)'R', (byte)'S', (byte)'T', (byte)'U',
@@ -90,17 +78,15 @@ class Base64Encoder
                     (byte)'+', (byte)'/'
             };
 
-    protected byte    padding = (byte)'=';
+    protected byte padding = (byte)'=';
 
     /*
      * set up the decoding table.
      */
     protected final byte[] decodingTable = new byte[128];
 
-    protected void initialiseDecodingTable()
-    {
-        for (int i = 0; i < encodingTable.length; i++)
-        {
+    protected void initialiseDecodingTable() {
+        for (int i = 0; i < encodingTable.length; i++) {
             decodingTable[encodingTable[i]] = (byte)i;
         }
     }

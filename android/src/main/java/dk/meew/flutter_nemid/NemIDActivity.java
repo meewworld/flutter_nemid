@@ -7,7 +7,6 @@ import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -21,64 +20,43 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
-
 import dk.meew.flutter_nemid.print.PrintUtils;
 import dk.meew.flutter_nemid.utilities.Base64;
 import dk.meew.flutter_nemid.utilities.Logger;
 import dk.meew.flutter_nemid.utilities.NemIDWebView;
 import dk.meew.flutter_nemid.utilities.StringHelper;
 
-
-/**
- * The NemIDActivity is responsible for presenting the web view with proper HTML for starting
- * the selected flow. It communicates with the NemID client by sending and receiving javascript
- * messages.
- */
 public class NemIDActivity extends Activity {
 
     private static final String LOGTAG = "NemID - NemIDActivity";
-
     private NemIDWebView jsWebView = null;
     private ViewTreeObserver.OnGlobalLayoutListener globalLayoutListener = null;
-
     public static String printHtml;
 
-    //region Link interception for Webview
-
-    //Ensure to load external urls correctly in API 21 and above
     private class NemIDWebViewClientOverrideUrlLoading extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-
             if(!url.contains(MainActivity.NIDBACKENDURL)) {
                 view.getContext().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
             }
-
             return true;
         }
 
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, String url){
-
             warnClearText(url);
-
             return null;
         }
-
     }
 
-    //Ensure to load external urls correctly below API 21
     private class NemIDWebViewClientBelowApi21 extends NemIDWebViewClientOverrideUrlLoading {
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, String url){
-
             warnClearText(url);
-
             if(!url.contains(MainActivity.NIDBACKENDURL) && url.contains("https://")) {
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 startActivity(browserIntent);
             }
-
             return null;
         }
     }
@@ -86,7 +64,6 @@ public class NemIDActivity extends Activity {
 
     // Show warning if clear text traffic
     private void warnClearText(final String url) {
-
         if (url.contains("http") && !url.contains("https")) {
             runOnUiThread(new Runnable() {
                 @Override
@@ -100,11 +77,8 @@ public class NemIDActivity extends Activity {
                     finish();
                 }
             });
-
         }
-
     }
-
 
     //region Webview handling and communication
     @Override
@@ -112,11 +86,8 @@ public class NemIDActivity extends Activity {
         Intent data_carry = new Intent();
         MainActivity.flowResponse = "Back pressed. Flow cancelled.";
         setResult(Activity.RESULT_CANCELED, data_carry);
-
         destroyWebView();
-
         finish();
-        // Otherwise defer to system default behavior.
         super.onBackPressed();
     }
 

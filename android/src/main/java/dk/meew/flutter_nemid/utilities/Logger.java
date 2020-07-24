@@ -4,9 +4,6 @@ import android.util.Log;
 
 import dk.meew.flutter_nemid.BuildConfig;
 
-/**
- * Custom Log class with configurable logging levels.
- */
 public class Logger {
     enum Level {
         NONE,
@@ -16,13 +13,6 @@ public class Logger {
         DEBUG
     }
 
-    /**
-     * Set a log level here, to create a build with a specific log level.
-     * NOTE that utilizing this user defined level, will enable logging for RELEASE builds.
-     *
-     * Keep this value at "null" to let the build config decide whether or not to log.
-     * A DEBUG build will allow logging and a RELEASE build will disallow it.
-     */
     static Level userDefinedLevel = null;
 
     static boolean debugEnabled;
@@ -82,5 +72,4 @@ public class Logger {
             }
         }
     }
-
 }

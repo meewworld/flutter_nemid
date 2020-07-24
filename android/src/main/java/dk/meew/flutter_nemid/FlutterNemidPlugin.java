@@ -3,20 +3,7 @@ package dk.meew.flutter_nemid;
 import androidx.annotation.NonNull;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Intent;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.widget.Toast;
-
-import java.util.Map;
-
-import dk.meew.flutter_nemid.communication.RestJsonHelper;
-import dk.meew.flutter_nemid.communication.RetrofitHelper;
-import dk.meew.flutter_nemid.communication.SPRestService;
-import dk.meew.flutter_nemid.communication.ValidationResponse;
-import dk.meew.flutter_nemid.utilities.Base64;
-import dk.meew.flutter_nemid.utilities.StringHelper;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
@@ -26,18 +13,12 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
 
-/** FlutterNemidPlugin */
 public class FlutterNemidPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware, PluginRegistry.ActivityResultListener {
 
   private MethodChannel channel;
-  private static Activity activity;
+  private Activity activity;
   private ActivityPluginBinding activityPluginBinding;
-
   Result mResult;
 
   @Override
@@ -46,7 +27,7 @@ public class FlutterNemidPlugin implements FlutterPlugin, MethodCallHandler, Act
     channel.setMethodCallHandler(this);
   }
 
-  public static void registerWith(Registrar registrar) {
+  public void registerWith(Registrar registrar) {
     final MethodChannel channel = new MethodChannel(registrar.messenger(), "flutter_nemid");
     channel.setMethodCallHandler(new FlutterNemidPlugin());
     activity = registrar.activity();
@@ -75,14 +56,10 @@ public class FlutterNemidPlugin implements FlutterPlugin, MethodCallHandler, Act
   }
 
   @Override
-  public void onDetachedFromActivityForConfigChanges() {
-
-  }
+  public void onDetachedFromActivityForConfigChanges() {}
 
   @Override
-  public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
-
-  }
+  public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {}
 
   @Override
   public void onDetachedFromActivity() {

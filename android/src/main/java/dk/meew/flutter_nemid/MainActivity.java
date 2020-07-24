@@ -1,21 +1,12 @@
 package dk.meew.flutter_nemid;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
-import org.json.JSONException;
-
 import androidx.annotation.NonNull;
 import dk.meew.flutter_nemid.communication.RestJsonHelper;
-import dk.meew.flutter_nemid.communication.RestJsonHelper.SignTextFormat;
 import dk.meew.flutter_nemid.communication.RetrofitHelper;
 import dk.meew.flutter_nemid.communication.SPRestService;
 import dk.meew.flutter_nemid.utilities.Base64;
-import dk.meew.flutter_nemid.utilities.Constants;
-import dk.meew.flutter_nemid.utilities.DateUtil;
 import dk.meew.flutter_nemid.utilities.Logger;
 import dk.meew.flutter_nemid.utilities.StringHelper;
 import dk.meew.flutter_nemid.communication.ValidationResponse;
@@ -24,28 +15,11 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import android.app.Activity;
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.View;
-import android.view.inputmethod.EditorInfo;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
 
 public class MainActivity extends Activity {
     private static final String LOGTAG = "NemID - MainActivity";
