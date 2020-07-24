@@ -114,11 +114,8 @@ public class NemIDActivity extends Activity {
             String string = StringHelper.toUtf8String(bytes);
 
             logLargeResponse(string);
-
             MainActivity.flowResponse = string;
-
             setResult(Activity.RESULT_OK);
-
             // Destroy the webview on the UI thread
             jsWebView.post(new Runnable() {
                 @Override
@@ -167,11 +164,6 @@ public class NemIDActivity extends Activity {
         Logger.d(LOGTAG, "Did show keyboard");
         InputMethodManager mgr = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         mgr.restartInput(jsWebView);
-        //showKeyboard will only be called in login flows as RequestKeyboard will not be exhibited
-        //in signing flows.
-        //In login flow case the globalListener should be removed to ensure that no auto-scrolling
-        //can occur. Listener is removed _before_ keyboard is shown, to avoid
-        //race-condition causing unnecessary auto-scroll
         if (globalLayoutListener != null) {
             jsWebView.getViewTreeObserver().removeOnGlobalLayoutListener(globalLayoutListener);
         }

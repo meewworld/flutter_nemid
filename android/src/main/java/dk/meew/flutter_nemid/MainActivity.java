@@ -51,7 +51,7 @@ public class MainActivity extends Activity {
         setupWidthAndHeight();
 
         setupDeviceSize();
-        startFlow("oceslogin2", getString(R.string.oces2factorlogin));
+        startFlow("oceslogin2");
     }
 
     private void setupWidthAndHeight() {
@@ -88,7 +88,7 @@ public class MainActivity extends Activity {
         return result;
     }
 
-    private void startFlow(final String flowtype, final String flowDescription) {
+    private void startFlow(final String flowtype) {
         currentActiveFlow = flowtype;
 
         final String requestObj;
@@ -153,16 +153,13 @@ public class MainActivity extends Activity {
         if (validationResult != null && validationResult.containsKey("VALIDATION_RESULT")) {
             String responseText = "";
             if (validationResult.get("VALIDATION_RESULT").equalsIgnoreCase("OK")) {
-
                 loggedIn = true;
-
                 responseText = "Flow success. Response validated.";
             } else if (validationResult.get("VALIDATION_RESULT").equalsIgnoreCase("FAILED VALIDATION")) {
                 responseText = "Response Signature not valid.";
             } else if (validationResult.get("VALIDATION_RESULT").equalsIgnoreCase("FAILED SYSTEM EXCEPTION")) {
                 responseText = "Could not validate response.";
             }
-
             return responseText;
         } else {
             Logger.e(LOGTAG, "Empty Validation Result Received!");
