@@ -23,24 +23,18 @@ import android.util.DisplayMetrics;
 
 public class MainActivity extends Activity {
     private static final String LOGTAG = "NemID - MainActivity";
-
     public final static String STARTFLOWURL = "dk.danid.android.testjavascript.MainActivity.startflowurl";
-
     private static String WIDTH = "";
     private static String HEIGHT = "";
     public final static String LARGE_DEVICE_LOGIN = "dk.danid.android.testjavascript.MainActivity.largedevicelogin";
     public static boolean isLargeDevice = false;
     public final static String WIDTH_PARAMETER = "dk.danid.android.testjavascript.MainActivity.width_parameter";
     public final static String HEIGHT_PARAMETER = "dk.danid.android.testjavascript.MainActivity.height_parameter";
-
     private final static int FLOWREQUEST = 0x1234;
-
     private static String SPBACKENDURL = "https://appletk.danid.dk";
     public static String NIDBACKENDURL = "https://appletk.danid.dk";
-
     private static String currentActiveFlow = "";
     public static boolean loggedIn = false;
-
     public static String parameters = "";
     public static String flowResponse;
 
