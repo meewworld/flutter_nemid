@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">TestJavascript</string>
+    <string name="onefaclogin">1 FACTOR LOGIN</string>
+    <string name="twofaclogin">2 FACTOR LOGIN</string>
+    <string name="onefacsign">1 FACTOR SIGN</string>
+    <string name="twofacsign">2 FACTOR SIGN</string>
+    <string name="logout">LOGOUT</string>
+    <string name="clearUseridToken">CLEAR USER ID TOKEN</string>
+    <string name="outputtext"> </string>
+    <string name="title_activity_javascript">NemID Activity</string>
+    <string-array name="language_array">
+        <item >DA (Danish)</item>
+        <item >EN (English)</item>
+        <item >KL (Greenlandic)</item>
+    </string-array>
+    <string name="result"> </string>
+    <string name="flowresult">Flow Result:</string>
+    <string name="spresponseheadline">Flow Details:</string>
+    <string name="oces2factorlogin">2 FACTOR LONG TERM LOGIN</string>
+    <string name="oces2faktorlongtermsign">2 FACTOR LONG TERM SIGN</string>
+    <string-array name="signtext_array">
+        <item >default.txt</item>
+        <item >default.html</item>
+        <item >shorttext.txt</item>
+        <item >default.xml</item>
+        <item >default.pdf</item>
+    </string-array>
+    <string name="buildversion">Build date:</string>
+    <string name="buildate_string"></string>
+    <string name="width">Custom width:</string>
+    <string name="widthDefault"></string>
+    <string name="height">Custom height:</string>
+    <string name="heightDefault"></string>
+    <string name="backend">SP:</string>
+    <string name="nemidbackend">NemID:</string>
+    <string name="backendurlchoice">https://appletk.danid.dk</string>
+    <string name="allow_stepup_string">Step up</string>
+    <string name="suppress_push_check">Suppress Push To Device</string>
+    <string name="app_switch_check">Use App Switch</string>
+    <string name="usesmalliframe">Use small iframe</string>
+    <string-array name="autobackendurl">
+        <item >https://appletk.danid.dk</item>
+        
+    </string-array>
+    <string name="resetresulttext">RESET RESULT</string>
+    <string name="signtext">Signtext:</string>
+    <string name="languagetext">Language:</string>
+    <string name="parameterstext">PARAMETERS</string>
+    <string name="banktext">BANK FLOWS</string>
+    <string name="ocestext">OCES FLOWS</string>
+    <string name="advancedtext">ADVANCED PARAMETERS</string>
+    <string name="revisionNumber"></string>
+
+</resources>

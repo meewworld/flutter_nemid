@@ -1,13 +1,11 @@
 import 'dart:async';
-
 import 'package:flutter/services.dart';
 
 class FlutterNemid {
-  static const MethodChannel _channel =
-      const MethodChannel('flutter_nemid');
+  static const MethodChannel _channel = const MethodChannel('flutter_nemid');
 
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
+  static Future<bool> get startNemIDLogin async {
+    final bool loggedIn = await _channel.invokeMethod('startNemIDLogin');
+    return loggedIn;
   }
 }

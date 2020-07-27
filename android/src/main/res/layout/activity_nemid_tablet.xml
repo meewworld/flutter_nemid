@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <dk.danid.android.sp.utils.NemIDWebView
+        android:layout_width="320dp"
+        android:layout_height="460dp"
+        android:id="@+id/jsWebView"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="100dp"
+        android:focusable="false"
+        android:windowSoftInputMode="stateHidden|adjustResize"/>
+</LinearLayout>
