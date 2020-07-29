@@ -1,9 +1,9 @@
 #import "FlutterNemidPlugin.h"
-#import "MainViewController.h"
 #import "NemIDViewController.h"
 #import "ValidationFetcher.h"
 #import "NetworkUtilities.h"
 #import "ClientDimensions.h"
+#import "Constants.h"
 
 @implementation FlutterNemidPlugin
 

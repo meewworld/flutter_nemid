@@ -236,9 +236,9 @@
         
         [self putResponse:content withRequestType:RequestTypeTwoFactorLoginLongTerm andSucces:^(ValidationResponse *validationResponse) {
             [self validateResponse:validationResponse];
-            NSString *flowDetails = [self getFlowDetailsFromValidationResponse:validationResponse andJSClientResponse:contentNormalized];
+            [self getFlowDetailsFromValidationResponse:validationResponse andJSClientResponse:contentNormalized];
         } error:^(NSInteger errorCode, NSString *errorMessage) {
-            NSString *errorDetails = [NSString stringWithFormat:@"Internal app error.\nError code: %lu\n %@Error message: ",errorCode,errorMessage];
+            [NSString stringWithFormat:@"Internal app error.\nError code: %lu\n %@Error message: ",errorCode,errorMessage];
         }];
         [self.navigationController popToRootViewControllerAnimated:YES];
         
@@ -339,11 +339,11 @@
                           NSLog(@"Got content while evaluating getContent(): %@", contentNormalized);
                           [self putResponse:content withRequestType:RequestTypeTwoFactorLoginLongTerm andSucces:^(ValidationResponse *validationResponse) {
                               [self validateResponse:validationResponse];
-                              NSString * flowDetails = [self getFlowDetailsFromValidationResponse:validationResponse andJSClientResponse:contentNormalized];
+                              [self getFlowDetailsFromValidationResponse:validationResponse andJSClientResponse:contentNormalized];
                               [self dismissViewControllerAnimated:NO completion:nil];
                               //[self.controller.responseTextView setText:flowDetails];
                           } error:^(NSInteger errorCode, NSString *errorMessage) {
-                              NSString *errorDetails = [NSString stringWithFormat:@"Internal app error.\nError code: %lu\nError message: %@",errorCode,errorMessage];
+                              [NSString stringWithFormat:@"Internal app error.\nError code: %lu\nError message: %@",errorCode,errorMessage];
                           }];
                           [self.navigationController popToRootViewControllerAnimated:YES];
                       }
