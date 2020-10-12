@@ -4,6 +4,10 @@ import androidx.annotation.NonNull;
 
 import android.app.Activity;
 import android.content.Intent;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
@@ -20,6 +24,8 @@ public class FlutterNemidPlugin implements FlutterPlugin, MethodCallHandler, Act
   private Activity activity;
   private ActivityPluginBinding activityPluginBinding;
   Result mResult;
+  private String signingEndpoint, validationEndpoint;
+  private static int REQUEST_CODE = 1337;
 
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
@@ -35,9 +41,20 @@ public class FlutterNemidPlugin implements FlutterPlugin, MethodCallHandler, Act
 
   @Override
   public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
-    if (call.method.equals("startNemIDLogin")) {
+    if (call.method.equals("setupBackendEndpoints")) {
+      if(call.hasArgument("signingEndpoint") && call.hasArgument("validationEndpoint")){
+        signingEndpoint = call.argument("signingEndpoint");
+        validationEndpoint = call.argument("validationEndpoint");
+        result.success("ok");
+      } else {
+        result.error("PARAMETERS NOT FOUND", "Please pass parameters for the backend endpoints.", null);
+      }
+    } else if (call.method.equals("startNemIDLogin")) {
       mResult = result;
-      activity.startActivityForResult(new Intent(activity, MainActivity.class), 1);
+      Intent intent = new Intent(activity, MainActivity.class);
+      intent.putExtra("signingEndpoint", signingEndpoint);
+      intent.putExtra("validationEndpoint", validationEndpoint);
+      activity.startActivityForResult(intent, REQUEST_CODE);
     } else {
       result.notImplemented();
     }
@@ -75,14 +92,22 @@ public class FlutterNemidPlugin implements FlutterPlugin, MethodCallHandler, Act
    * @return true if the result has been handled.
    */
   @Override
-  public boolean onActivityResult(int requestCode, int resultCode, Intent data){
-    if (resultCode == Activity.RESULT_OK) {
-      boolean returnValue = data.getBooleanExtra("logged_in", false);
-      mResult.success(returnValue);
-    } else if (resultCode == Activity.RESULT_CANCELED) {
-      mResult.success(false);
-    } else {
-      mResult.success(false);
+  public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
+    if (requestCode == REQUEST_CODE) {
+      try {
+        JSONObject response = new JSONObject();
+        String result = data.getStringExtra("result");
+        int status = data.getIntExtra("status", 503);
+        response.put("result", result);
+        response.put("status", status);
+        if (resultCode == Activity.RESULT_OK) {
+          mResult.success(response.toString());
+        } else {
+          mResult.error(""+status, result, response);
+        }
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
     }
     return true;
   }

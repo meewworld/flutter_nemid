@@ -1,8 +1,10 @@
 package dk.meew.flutter_nemid;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Random;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import dk.meew.flutter_nemid.communication.RestJsonHelper;
 import dk.meew.flutter_nemid.communication.RetrofitHelper;
 import dk.meew.flutter_nemid.communication.SPRestService;
@@ -10,16 +12,27 @@ import dk.meew.flutter_nemid.utilities.Base64;
 import dk.meew.flutter_nemid.utilities.Logger;
 import dk.meew.flutter_nemid.utilities.StringHelper;
 import dk.meew.flutter_nemid.communication.ValidationResponse;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Headers;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MainActivity extends Activity {
     private static final String LOGTAG = "NemID - MainActivity";
@@ -33,19 +46,30 @@ public class MainActivity extends Activity {
     private final static int FLOWREQUEST = 0x1234;
     private static String SPBACKENDURL = "https://appletk.danid.dk";
     public static String NIDBACKENDURL = "https://appletk.danid.dk";
-    private static String currentActiveFlow = "";
+    private static String currentActiveFlow = "oceslogin2";
     public static boolean loggedIn = false;
     public static String parameters = "";
     public static String flowResponse;
+    public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    OkHttpClient client = new OkHttpClient();
+    public String signingEndpoint;
+    public String validationEndpoint;
 
     //region Private View setup and utility methods
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Intent intent = getIntent();
+        signingEndpoint = intent.getStringExtra("signingEndpoint");
+        validationEndpoint = intent.getStringExtra("validationEndpoint");
+
         setupWidthAndHeight();
 
         setupDeviceSize();
-        startFlow("oceslogin2");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            startFlow();
+        }
     }
 
     private void setupWidthAndHeight() {
@@ -82,41 +106,28 @@ public class MainActivity extends Activity {
         return result;
     }
 
-    private void startFlow(final String flowtype) {
-        currentActiveFlow = flowtype;
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    private void startFlow() {
+        Request request = new Request.Builder()
+                .url(signingEndpoint)
+                .build();
 
-        final String requestObj;
-        requestObj = RestJsonHelper.getLogonRequest(
-                "1",
-                "DA",
-                flowtype,
-                "",
-                false,
-                false);
-        signParameters(flowtype, requestObj);
-    }
-
-    private void signParameters(final String flowType, final String requestObj) {
-        Retrofit retrofit = RetrofitHelper.getRetrofitForBaseUrl(getBackendUrl());
-        SPRestService spRestService = retrofit.create(SPRestService.class);
-        final Call<String> parameterCall = spRestService.signParameters(requestObj);
-
-        parameterCall.enqueue(new Callback<String>() {
+        client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-                if (response.isSuccessful()) {
-                    parameters = response.body();
-                    ClientDimensions clientDimensions = getClientDimensions();
-                    // Start NemIDActivity
-                    Intent openWebViewIntent = getWebIntent(getFlowUrl(), clientDimensions);
-                    startActivityForResult(openWebViewIntent, FLOWREQUEST);
-                    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                }
+            public void onFailure(Call call, IOException e) {
+                Log.e("Failure", e.getMessage());
             }
 
             @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                Logger.e(LOGTAG, "Failed to request flow: " + flowType);
+            public void onResponse(Call call, Response response) throws IOException {
+                if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+
+                parameters = response.body().string();
+                ClientDimensions clientDimensions = getClientDimensions();
+                // Start NemIDActivity
+                Intent openWebViewIntent = getWebIntent(getFlowUrl(), clientDimensions);
+                startActivityForResult(openWebViewIntent, FLOWREQUEST);
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             }
         });
     }
@@ -124,10 +135,8 @@ public class MainActivity extends Activity {
     @Override
     public void onActivityResult(final int requestCode, int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK) {
-            if (currentFlowIsBankFlow() && currentFlowIsLoginFlow()) {
-                validateLoginResponseAtSpBackend();
-            } else if (currentFlowIsOcesFlow() || currentFlowIsSignFlow()) {
-                validateSignResponseAtSpBackend();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                validateResponse();
             }
         } else if (resultCode == Activity.RESULT_CANCELED) {
             Intent resultIntent = new Intent();
@@ -143,68 +152,48 @@ public class MainActivity extends Activity {
         }
     }
 
-    private String processValidationResult(Map<String, String> validationResult) {
-        if (validationResult != null && validationResult.containsKey("VALIDATION_RESULT")) {
-            String responseText = "";
-            if (validationResult.get("VALIDATION_RESULT").equalsIgnoreCase("OK")) {
-                loggedIn = true;
-                responseText = "Flow success. Response validated.";
-            } else if (validationResult.get("VALIDATION_RESULT").equalsIgnoreCase("FAILED VALIDATION")) {
-                responseText = "Response Signature not valid.";
-            } else if (validationResult.get("VALIDATION_RESULT").equalsIgnoreCase("FAILED SYSTEM EXCEPTION")) {
-                responseText = "Could not validate response.";
-            }
-            return responseText;
-        } else {
-            Logger.e(LOGTAG, "Empty Validation Result Received!");
-            return "Empty Validation Result Received!";
-        }
-    }
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    private void validateResponse(){
+        JSONObject body = new JSONObject();
+        try {
+            body.put("response", flowResponse);
+            final Request request = new Request.Builder()
+                    .url(validationEndpoint)
+                    .post(RequestBody.create(JSON, body.toString()))
+                    .build();
 
-    private void validateSignResponseAtSpBackend() {
-        Retrofit retrofit = RetrofitHelper.getRetrofitForBaseUrl(getBackendUrl());
-        SPRestService spRestService = retrofit.create(SPRestService.class);
+            client.newCall(request).enqueue(new Callback() {
+                String result = "";
 
-        String encodedResponse = Base64.encode(StringHelper.toUtf8Bytes(flowResponse));
-
-        Call<String> verificationCall = spRestService.validateSignResult(encodedResponse);
-        performVerificationCall(verificationCall);
-    }
-
-    private void validateLoginResponseAtSpBackend() {
-        Retrofit retrofit = RetrofitHelper.getRetrofitForBaseUrl(getBackendUrl());
-        SPRestService spRestService = retrofit.create(SPRestService.class);
-
-        String encodedResponse = Base64.encode(StringHelper.toUtf8Bytes(flowResponse));
-
-        Call<String> verificationCall = spRestService.validateLoginResult(encodedResponse);
-        performVerificationCall(verificationCall);
-    }
-
-    private void performVerificationCall(Call<String> verificationCall) {
-        verificationCall.enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-                Map<String, String> validationResult;
-
-                Intent resultIntent = new Intent();
-                if (response.isSuccessful()) {
-                    validationResult = ValidationResponse.parse(response.body());
-                    processValidationResult(validationResult);
-                    setResult(Activity.RESULT_OK, resultIntent);
-                } else {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    result = e.getMessage();
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("result", result);
                     setResult(Activity.RESULT_CANCELED, resultIntent);
+                    finish();
                 }
 
-                resultIntent.putExtra("logged_in", loggedIn);
-                finish();
-            }
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+                    Intent resultIntent = new Intent();
+                    if (response.isSuccessful()) {
+                        result = response.body().string();
+                        setResult(Activity.RESULT_OK, resultIntent);
+                    } else {
+                        setResult(Activity.RESULT_CANCELED, resultIntent);
+                    }
 
-            @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                Logger.e(LOGTAG, "Failed to receive response at sp backend.");
-            }
-        });
+                    resultIntent.putExtra("result", result);
+                    resultIntent.putExtra("status", response.code());
+                    finish();
+                }
+            });
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
     //endregion
 
@@ -229,7 +218,7 @@ public class MainActivity extends Activity {
         Random rand = new Random();
         int r = Math.abs(rand.nextInt());
 
-        return NIDBACKENDURL + "/launcher/lmt/" + r;
+        return "https://appletk.danid.dk/launcher/lmt/" + r;
     }
 
     @NonNull
@@ -247,17 +236,8 @@ public class MainActivity extends Activity {
         return SPBACKENDURL;
     }
 
-    private boolean currentFlowIsOcesFlow(){
-        return currentActiveFlow.contains("oces");
-    }
-    private boolean currentFlowIsBankFlow(){
-        return currentActiveFlow.contains("bank");
-    }
     private boolean currentFlowIsLoginFlow(){
         return currentActiveFlow.contains("login");
-    }
-    private boolean currentFlowIsSignFlow(){
-        return currentActiveFlow.contains("sign");
     }
     //endregion
 
