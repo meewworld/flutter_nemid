@@ -34,14 +34,17 @@
 }
 
 + (NSURLRequest*)urlRequestWithData:(NSURL*)url andDataString:(NSString*)dataStr requestType:(NSString*)type {
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:5.0];
-    request.HTTPShouldHandleCookies = YES;
     NSData *data = [dataStr dataUsingEncoding:NSUTF8StringEncoding];
+    NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    NSString *logString = [NSString stringWithFormat:@"{\"response\":\"%@\"}", string];
     
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
+    NSData *requestData = [NSData dataWithBytes:[logString UTF8String] length:[logString length]];
     [request setHTTPMethod:@"POST"];
+    [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
     [request setValue:@"application/json;charset=UTF-8" forHTTPHeaderField:@"Content-Type"];
-    [request setValue:[NSString stringWithFormat:@"%lu", (unsigned long)[data length]] forHTTPHeaderField:@"Content-length"];
-    [request setHTTPBody:data];
+    [request setValue:[NSString stringWithFormat:@"%d", [requestData length]] forHTTPHeaderField:@"Content-Length"];
+    [request setHTTPBody: requestData];
     return request;
 }
 

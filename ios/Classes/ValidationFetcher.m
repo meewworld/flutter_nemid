@@ -39,7 +39,7 @@
 #pragma mark - Validation
 
 + (void)fetchValidationWithBackendUrl:(NSString *)urlStr andData:(NSString *)dataStr success:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock {
-    [self fetch:[NSURL URLWithString:urlStr] andSaml:[NetworkUtilities urlEncode:dataStr] success:successBlock error:errorBlock];
+    [self fetch:[NSURL URLWithString:urlStr] andSaml:dataStr success:successBlock error:errorBlock];
 }
 
 
