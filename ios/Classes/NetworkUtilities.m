@@ -21,16 +21,44 @@
     return [NIDBase64 stringFromBase64String:str];
 }
 
-+ (NSURLRequest*)urlRequestWithUrl:(NSURL*)url andDataString:(NSString*)dataStr {
++ (NSURLRequest*)urlRequestWithUrl:(NSURL*)url andDataString:(NSString*)dataStr requestType:(NSString*)type {
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:5.0];
+    request.HTTPShouldHandleCookies = YES;
+    NSData *data = [dataStr dataUsingEncoding:NSUTF8StringEncoding];
+    
+    [request setHTTPMethod:type];
+    [request setValue:@"application/x-www-form-urlencoded;charset=UTF-8" forHTTPHeaderField:@"Content-Type"];
+    [request setValue:[NSString stringWithFormat:@"%lu", (unsigned long)[data length]] forHTTPHeaderField:@"Content-length"];
+    [request setHTTPBody:data];
+    return request;
+}
+
++ (NSURLRequest*)urlRequestWithData:(NSURL*)url andDataString:(NSString*)dataStr requestType:(NSString*)type {
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:5.0];
     request.HTTPShouldHandleCookies = YES;
     NSData *data = [dataStr dataUsingEncoding:NSUTF8StringEncoding];
     
     [request setHTTPMethod:@"POST"];
-    [request setValue:@"application/x-www-form-urlencoded;charset=UTF-8" forHTTPHeaderField:@"Content-Type"];
+    [request setValue:@"application/json;charset=UTF-8" forHTTPHeaderField:@"Content-Type"];
     [request setValue:[NSString stringWithFormat:@"%lu", (unsigned long)[data length]] forHTTPHeaderField:@"Content-length"];
     [request setHTTPBody:data];
     return request;
+}
+
+-(void) JSLog:(NSString*)logString{
+        int stepLog = 800;
+        NSInteger strLen = [@([logString length]) integerValue];
+        NSInteger countInt = strLen / stepLog;
+        if (strLen > stepLog) {
+        for (int i=1; i <= countInt; i++) {
+            NSString *character = [logString substringWithRange:NSMakeRange((i*stepLog)-stepLog, stepLog)];
+            NSLog(@"%@", character);
+        }
+        NSString *character = [logString substringWithRange:NSMakeRange((countInt*stepLog), strLen-(countInt*stepLog))];
+        NSLog(@"%@", character);
+        } else {
+        NSLog(@"%@", logString);
+        }
 }
 
 + (NSDictionary*)parseKeyValueResponse:(NSData*)data{

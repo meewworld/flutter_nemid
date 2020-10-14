@@ -34,14 +34,18 @@ BOOL _isLoggedIn;
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
     self.flutterResult = result;
     
-  if ([@"startNemIDLogin" isEqualToString:call.method]) {
+    if ([@"setupBackendEndpoints" isEqualToString:call.method]) {
+        self.signingEndpoint = call.arguments[@"signingEndpoint"];
+        self.validationEndpoint = call.arguments[@"validationEndpoint"];
+        result(@"ok");
+    } else if ([@"startNemIDLogin" isEqualToString:call.method]) {
             
       NSString *bundlePath = [[NSBundle mainBundle] pathForResource:@"nemid_bundle" ofType:@"bundle"];
       NSBundle *bundle = [NSBundle bundleWithPath:bundlePath];
 
       _isLoggedIn = NO;
-      self.spBackendURL = @"https://appletk.danid.dk";
-      self.nemIDBackendURL = @"https://appletk.danid.dk";
+      self.spBackendURL = @"https://applet.danid.dk";
+      self.nemIDBackendURL = @"https://applet.danid.dk";
       
       [self parameterResponse:@"RequestTypeTwoFactorLoginLongTerm+" success:^(NSString *parameters) {
           //Pass parameters to next view, and go to view
@@ -57,7 +61,7 @@ BOOL _isLoggedIn;
               
               // Set relevant parameters for NemIDViewController
               nemIDViewController.parameters = parameters;
-              NSString *launcherUrl =[NSString stringWithFormat:@"%@%@", self.nemIDBackendURL, LauncherURL];
+              NSString *launcherUrl = @"https://applet.danid.dk/launcher/lmt";
               nemIDViewController.nemIDJavascriptURL = launcherUrl;
               nemIDViewController.width = clientDimensions.width;
               nemIDViewController.height = clientDimensions.height;
@@ -97,17 +101,12 @@ BOOL _isLoggedIn;
 - (void)parameterResponse:(NSString *)requestType
                   success:(ParameterFetcherSuccessBlock)successBlock
                     error:(ParameterFetcherErrorBlock)errorBlock {
-    NSString *samlProviderUrl = [NSString stringWithFormat:@"%@%@", self.spBackendURL, GenerateParameterURL];
+    NSString *samlProviderUrl = self.signingEndpoint;
 
     NSLog(@"Starting RequestTypeTwoFactorLoginLongTerm");
-    [ParameterFetcher fetchTwoFactorLoginLongTermWithSamlProvider:[NSURL URLWithString:samlProviderUrl]
-                                                                                issuer:@"1"
-                                                                              language:@"DA"
-                                                                   rememberuseridtoken:@""
-                                                                  suppressPushToDevice:@"FALSE"
-                                                                          useAppSwitch:@"FALSE"
-                                                                               success:successBlock
-                                                                                 error:errorBlock];
+    [ParameterFetcher fetchParameters:[NSURL URLWithString:samlProviderUrl]
+                                                   success:successBlock
+                                                     error:errorBlock];
 }
 
 
