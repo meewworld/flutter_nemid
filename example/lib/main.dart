@@ -44,12 +44,14 @@ class _MyAppState extends State<MyApp> {
   String getResult(){
     String result = "";
 
-    if(_response.containsKey("status")){
-      result += "Status: ${_response['status']}\n";
-    }
+    if(_response != null) {
+      if (_response.containsKey("status")) {
+        result += "Status: ${_response['status']}\n";
+      }
 
-    if(_response.containsKey("result")){
-      result += "Result: ${_response['result']}\n";
+      if (_response.containsKey("result")) {
+        result += "Result: ${_response['result']}\n";
+      }
     }
 
     return result;
