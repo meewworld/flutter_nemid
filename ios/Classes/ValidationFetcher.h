@@ -24,8 +24,7 @@ typedef void(^ValidationFetcherErrorBlock)(NSInteger errorCode, NSString *errorM
 
 @interface ValidationFetcher : NSObject
 
-+ (void)fetchLoginValidationWithBackendUrl:(NSString *)urlStr andData:(NSString *)dataStr success:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock issuer:(NSString *)issuer;
-+ (void)fetchSignValidationWithBackendUrl:(NSString *)urlStr andData:(NSString *)dataStr success:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock issuer:(NSString *)issuer;
++ (void)fetchValidationWithBackendUrl:(NSString *)urlStr andData:(NSString *)dataStr success:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock;
 + (void)logOut:(NSString*)urlStr success:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock;
 
 @end

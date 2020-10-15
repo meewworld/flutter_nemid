@@ -145,24 +145,6 @@
     return [NSString stringWithFormat:js, self.nemIDJavascriptURL, self.parameters, (int)iframeHeight, (int)iframeWidth];
 }
 
-// Sends response to SP backend for validation
-- (void)putResponse:(NSString*)response withRequestType:(RequestType)requestType andSucces:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock{
-        switch (requestType) {
-            case RequestTypeOneFactorLogin:
-            case RequestTypeTwoFactorLogin:
-                [self putSamlResponse:response withSuccess:successBlock error:errorBlock issuer:@"49"];
-                break;
-            case RequestTypeOneFactorSign:
-            case RequestTypeTwoFactorSign:
-                [self putSignResponse:response withSuccess:successBlock error:errorBlock issuer:@"49"];
-            case RequestTypeTwoFactorLoginLongTerm:
-            case RequestTypeTwoFactorSignLongTerm:
-                [self putSignResponse:response withSuccess:successBlock error:errorBlock issuer:@"1"];
-            default:
-                break;
-        }
-}
-
 #pragma mark - Printing
 
 - (void)printContent:(NSString*)dataStr {
@@ -203,7 +185,9 @@
                                                             preferredStyle:UIAlertControllerStyleAlert];
     
     UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
-                                                          handler:^(UIAlertAction * action) {}];
+                                                          handler:^(UIAlertAction * action) {
+		[NemIDAppSwitcher doAppSwitchWithReturnUrl:@"flutternemid://nemidfinished"];
+    }];
     
     [alert addAction:defaultAction];
     [self presentViewController:alert animated:YES completion:nil];
@@ -234,7 +218,7 @@
         NSString *contentNormalized = [NetworkUtilities base64Decode:content];
         NSLog(@"Got content while evaluating getContent(): %@", contentNormalized);
         
-        [self putResponse:content withRequestType:RequestTypeTwoFactorLoginLongTerm andSucces:^(ValidationResponse *validationResponse) {
+        [self putSignResponse:content withSuccess:^(ValidationResponse *validationResponse) {
             [self validateResponse:validationResponse];
             [self getFlowDetailsFromValidationResponse:validationResponse andJSClientResponse:contentNormalized];
         } error:^(NSInteger errorCode, NSString *errorMessage) {
@@ -264,37 +248,19 @@
     return YES;
 }
 
-- (void)putSamlResponse:(NSString *) saml withSuccess:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock issuer:(NSString *) issuer{
-    [ValidationFetcher fetchLoginValidationWithBackendUrl:self.controller.spBackendURL andData:saml success:successBlock
-    error:^(NSInteger errorCode, NSString *errorMessage) {
-        NSLog(@"Error during putSamlResponse. ErrorCode was: %lu. ErrorMessage was: %@", (long)errorCode, errorMessage);
-        errorBlock(errorCode,errorMessage);
-    }
-     issuer:issuer];
-}
-
-- (void)putSignResponse:(NSString *) xmlDsig withSuccess:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock issuer:(NSString *) issuer {
-    [ValidationFetcher fetchSignValidationWithBackendUrl:self.controller.spBackendURL andData:xmlDsig success:successBlock
+- (void)putSignResponse:(NSString *) xmlDsig withSuccess:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock {
+    [ValidationFetcher fetchValidationWithBackendUrl:self.controller.validationEndpoint andData:xmlDsig success:successBlock
     error:^(NSInteger errorCode, NSString *errorMessage) {
         NSLog(@"Error during putSignResponse. ErrorCode was: %lu. ErrorMessage was: %@", (long)errorCode, errorMessage);
         errorBlock(errorCode,errorMessage);
     }
-     issuer:issuer];
+     ];
 }
 
 - (void)validateResponse:(ValidationResponse *)response{
     NSLog(@"VALIDATION RESPONSE: %@",response);
-    if ([response.validationResult isEqualToString:@"OK"]){
-        //Succesful flow, signature was validated succesfully by the SP backend
-        [self.controller setLoggedInTo:YES];
-    }
-    if ([response.validationResult isEqualToString:@"FAILED VALIDATION"]){
-        //Failed Signature validation
-    }
-    if ([response.validationResult isEqualToString:@"FAILED SYSTEM EXCEPTION"]){
-        //Response was malformed, or backend error occured
-    }
-    [self.controller sendResult];
+    NSString *responseString = [NSString stringWithFormat:@"%@", response];
+    [self.controller sendResult:responseString];
 }
 
 - (NSString *)getFlowDetailsFromValidationResponse:(ValidationResponse *) valResponse andJSClientResponse:(NSString *) content{
@@ -310,8 +276,8 @@
                             %@";
     
     NSMutableString *result = [[NSMutableString alloc] init];
-    if(valResponse.resultDetails!=nil){
-        [result appendString:[NSString stringWithFormat:resultDetailsHeader, valResponse.resultDetails]];
+    if(valResponse.result!=nil){
+        [result appendString:[NSString stringWithFormat:resultDetailsHeader, valResponse.result]];
     }
     [result appendString:[NSString stringWithFormat:flowDetails, content]];
     
@@ -337,7 +303,7 @@
                       } else {
                           contentNormalized = [NetworkUtilities base64Decode:content];
                           NSLog(@"Got content while evaluating getContent(): %@", contentNormalized);
-                          [self putResponse:content withRequestType:RequestTypeTwoFactorLoginLongTerm andSucces:^(ValidationResponse *validationResponse) {
+                          [self putSignResponse:content withSuccess:^(ValidationResponse *validationResponse) {
                               [self validateResponse:validationResponse];
                               [self getFlowDetailsFromValidationResponse:validationResponse andJSClientResponse:contentNormalized];
                               [self dismissViewControllerAnimated:NO completion:nil];
