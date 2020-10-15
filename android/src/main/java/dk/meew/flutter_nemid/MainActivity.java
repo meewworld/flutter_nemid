@@ -137,16 +137,17 @@ public class MainActivity extends Activity {
     public void onActivityResult(final int requestCode, int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                validateResponse();
+                if(!flowResponse.isEmpty()){
+                    if(flowResponse.length() > 20){
+                        validateResponse();
+                    }
+                }
             }
         } else if (resultCode == Activity.RESULT_CANCELED) {
-            Intent resultIntent = new Intent();
-            resultIntent.putExtra("logged_in", loggedIn);
-            setResult(Activity.RESULT_CANCELED, resultIntent);
+            setResult(Activity.RESULT_CANCELED);
             finish();
         } else {
             Intent resultIntent = new Intent();
-            resultIntent.putExtra("logged_in", loggedIn);
             resultIntent.putExtra("error", resultCode);
             setResult(Activity.RESULT_CANCELED, resultIntent);
             finish();

@@ -96,18 +96,22 @@ public class FlutterNemidPlugin implements FlutterPlugin, MethodCallHandler, Act
     if (requestCode == REQUEST_CODE) {
       try {
         JSONObject response = new JSONObject();
-        if(data.getExtras().containsKey("result")) {
-          String result = data.getStringExtra("result");
-          int status = data.getIntExtra("status", 503);
-          response.put("result", result);
-          response.put("status", status);
-          if (resultCode == Activity.RESULT_OK) {
-            mResult.success(response.toString());
+        if(data != null) {
+          if(data.getExtras().containsKey("result")) {
+            String result = data.getStringExtra("result");
+            int status = data.getIntExtra("status", 503);
+            response.put("result", result);
+            response.put("status", status);
+            if (resultCode == Activity.RESULT_OK) {
+              mResult.success(response.toString());
+            } else {
+              mResult.error("" + status, result, response);
+            }
           } else {
-            mResult.error("" + status, result, response);
+            mResult.error("503", "Unknown error", "");
           }
         } else {
-          mResult.error("503", "Login was canceled", response);
+          mResult.error("503", "Login was canceled", "");
         }
       } catch (JSONException e) {
         e.printStackTrace();
