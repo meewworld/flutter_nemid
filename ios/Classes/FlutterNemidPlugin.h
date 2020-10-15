@@ -8,7 +8,6 @@
 @property (nonatomic, copy) NSString *validationEndpoint;
 @property (nonatomic, copy) FlutterResult flutterResult;
 
-- (void)setLoggedInTo:(BOOL) state;
-- (void)sendResult;
+- (void)sendResult:(NSString *)response;
 
 @end

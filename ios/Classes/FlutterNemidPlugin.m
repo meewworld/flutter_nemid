@@ -7,8 +7,6 @@
 
 @implementation FlutterNemidPlugin
 
-BOOL _isLoggedIn;
-
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
     FlutterMethodChannel* channel = [FlutterMethodChannel methodChannelWithName:@"flutter_nemid" binaryMessenger:[registrar messenger]];
     FlutterNemidPlugin* instance = [[FlutterNemidPlugin alloc] init];
@@ -43,7 +41,6 @@ BOOL _isLoggedIn;
       NSString *bundlePath = [[NSBundle mainBundle] pathForResource:@"nemid_bundle" ofType:@"bundle"];
       NSBundle *bundle = [NSBundle bundleWithPath:bundlePath];
 
-      _isLoggedIn = NO;
       self.spBackendURL = @"https://applet.danid.dk";
       self.nemIDBackendURL = @"https://applet.danid.dk";
       
@@ -81,12 +78,8 @@ BOOL _isLoggedIn;
   }
 }
 
-- (void) setLoggedInTo:(BOOL) state{
-    _isLoggedIn = state;
-}
-
-- (void) sendResult {
-    self.flutterResult([NSNumber numberWithBool:_isLoggedIn]);
+- (void) sendResult:(NSString*)response {
+    self.flutterResult(response);
 }
 
 - (ClientDimensions *)getClientDimensions {

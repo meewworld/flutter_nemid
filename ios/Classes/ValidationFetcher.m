@@ -20,8 +20,11 @@
     
     [[session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {  
         if (!error) {
-            NSLog(@"Data: %@, response: %@", data, response);
-            NSDictionary *dict = [NetworkUtilities parseKeyValueResponse:data];
+            NSMutableDictionary *dict = [NetworkUtilities parseKeyValueResponse:data];
+            NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *) response;
+            NSInteger statusCode = 0;
+            statusCode = httpResponse.statusCode;
+            [dict setObject:[NSNumber numberWithInt:statusCode] forKey:@"status"];
             NSLog(@"Validation response fetched from url:%@ with result:%@", url, dict);
             dispatch_sync(dispatch_get_main_queue(), ^{
                successBlock([[ValidationResponse alloc] initWithDictionary:dict]);

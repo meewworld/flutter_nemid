@@ -48,22 +48,6 @@
     return request;
 }
 
--(void) JSLog:(NSString*)logString{
-        int stepLog = 800;
-        NSInteger strLen = [@([logString length]) integerValue];
-        NSInteger countInt = strLen / stepLog;
-        if (strLen > stepLog) {
-        for (int i=1; i <= countInt; i++) {
-            NSString *character = [logString substringWithRange:NSMakeRange((i*stepLog)-stepLog, stepLog)];
-            NSLog(@"%@", character);
-        }
-        NSString *character = [logString substringWithRange:NSMakeRange((countInt*stepLog), strLen-(countInt*stepLog))];
-        NSLog(@"%@", character);
-        } else {
-        NSLog(@"%@", logString);
-        }
-}
-
 + (NSDictionary*)parseKeyValueResponse:(NSData*)data{
     NSString *response = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     NSLog(@"Response from SP backend was: %@", response);
@@ -76,24 +60,8 @@
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:3];
     for (int i = 0; i < [keyValuePairs count]; i++) {
         NSString *keyValuePairStr = [keyValuePairs objectAtIndex:i];
-        if ([keyValuePairStr length] < 3) {
-            continue; //cannot be parsed as a key-value pair - ignore
-        }
         
-        NSArray *keyValue = [keyValuePairStr componentsSeparatedByString:@"="];
-        if ([keyValue count] == 0) {
-            NSLog(@"No key-value pairs found in response: %@", response);
-            continue; //cannot be parsed as a key-value pair - ignore
-        }
-        
-        if ([keyValue count] > 1) {
-            NSString *key = [[keyValue objectAtIndex:0] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-            NSString *value = [NIDBase64 stringFromBase64String:[keyValue objectAtIndex:1]];
-            
-            if (value && key) {
-                [dict setObject:value forKey:key];
-            }
-        }
+        [dict setObject:keyValuePairStr forKey:@"result"];
     }
     return dict;
 }

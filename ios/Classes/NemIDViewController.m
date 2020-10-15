@@ -247,7 +247,6 @@
 }
 
 - (void)putSignResponse:(NSString *) xmlDsig withSuccess:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock {
-    NSLog(@"Tester %@", xmlDsig);
     [ValidationFetcher fetchValidationWithBackendUrl:self.controller.validationEndpoint andData:xmlDsig success:successBlock
     error:^(NSInteger errorCode, NSString *errorMessage) {
         NSLog(@"Error during putSignResponse. ErrorCode was: %lu. ErrorMessage was: %@", (long)errorCode, errorMessage);
@@ -258,17 +257,8 @@
 
 - (void)validateResponse:(ValidationResponse *)response{
     NSLog(@"VALIDATION RESPONSE: %@",response);
-    if ([response.validationResult isEqualToString:@"OK"]){
-        //Succesful flow, signature was validated succesfully by the SP backend
-        [self.controller setLoggedInTo:YES];
-    }
-    if ([response.validationResult isEqualToString:@"FAILED VALIDATION"]){
-        //Failed Signature validation
-    }
-    if ([response.validationResult isEqualToString:@"FAILED SYSTEM EXCEPTION"]){
-        //Response was malformed, or backend error occured
-    }
-    [self.controller sendResult];
+    NSString *responseString = [NSString stringWithFormat:@"%@", response];
+    [self.controller sendResult:responseString];
 }
 
 - (NSString *)getFlowDetailsFromValidationResponse:(ValidationResponse *) valResponse andJSClientResponse:(NSString *) content{
@@ -284,8 +274,8 @@
                             %@";
     
     NSMutableString *result = [[NSMutableString alloc] init];
-    if(valResponse.resultDetails!=nil){
-        [result appendString:[NSString stringWithFormat:resultDetailsHeader, valResponse.resultDetails]];
+    if(valResponse.result!=nil){
+        [result appendString:[NSString stringWithFormat:resultDetailsHeader, valResponse.result]];
     }
     [result appendString:[NSString stringWithFormat:flowDetails, content]];
     
