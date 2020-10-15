@@ -185,7 +185,9 @@
                                                             preferredStyle:UIAlertControllerStyleAlert];
     
     UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
-                                                          handler:^(UIAlertAction * action) {}];
+                                                          handler:^(UIAlertAction * action) {
+		[NemIDAppSwitcher doAppSwitchWithReturnUrl:@"flutternemid://nemidfinished"];
+    }];
     
     [alert addAction:defaultAction];
     [self presentViewController:alert animated:YES completion:nil];
