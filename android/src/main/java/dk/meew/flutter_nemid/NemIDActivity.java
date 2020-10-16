@@ -360,7 +360,6 @@ public class NemIDActivity extends Activity {
                 + "giveResponseToAndroid();"
                 + "} "
                 + " if (message.command === \"AwaitingAppApproval\") { "
-                + "console.log('test');"
                 + "NemIDActivityJSI.performAppSwitch();"
                 + "} "
                 + " if (message.command === \"RequestKeyboard\") { "
