@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 class FlutterNemid {
   static const MethodChannel _channel = const MethodChannel('flutter_nemid');
 
-
   static Future<void> setupBackendEndpoints({String signingEndpoint, String validationEndpoint}) async {
     try {
       await _channel.invokeMethod('setupBackendEndpoints', {
