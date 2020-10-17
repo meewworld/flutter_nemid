@@ -122,8 +122,7 @@ public class MainActivity extends Activity {
             public void onResponse(Call call, Response response) throws IOException {
                 if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
 
-                //parameters = response.body().string();
-                parameters = "{\"CLIENTFLOW\":\"OCESLOGIN2\",\"ENABLE_AWAITING_APP_APPROVAL_EVENT\":\"true\",\"SP_CERT\":\"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\",\"TIMESTAMP\":\"2020-10-14 16:16:36+0000\",\"DIGEST_SIGNATURE\":\"RGFZjxoqLwNhGwGUv4xEvCKtq+sP2qTSeioCyPwAVIeL92M8sGvpN4/Pbq6PfLK2FV8nm0TkkA08FcohSvCsdvPWS0MnDsXzyaZ0hwv3w5TOozMdZM1ATwsnyot4cUmQ8BUZhQpajz9Q37JYvWXp4iqtf2JcPhQNu+JxBcIe93jjb0IpPrpLS16GQ+GiP4UyIYC/NufUQlnCGha48F5/MvblTlptJFGzJK0Ihhtq3b9X3cCaT9mH1lfuYGroKwjhCB8cHEtTUfLISSKasixRTVttuFOZ3vGzCDkKZIYBCQVqjv2J8baGFXebh76DF1RazoHmSmj7dPNQpYUCfhYNSA==\",\"PARAMS_DIGEST\":\"kQkV64j+InTjmpFUjcCbhlSlzHoaLW1gRmtENQYOBZw=\"}";
+                parameters = response.body().string();
 
                 ClientDimensions clientDimensions = getClientDimensions();
                 // Start NemIDActivity
@@ -138,16 +137,17 @@ public class MainActivity extends Activity {
     public void onActivityResult(final int requestCode, int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                validateResponse();
+                if(!flowResponse.isEmpty()){
+                    if(flowResponse.length() > 20){
+                        validateResponse();
+                    }
+                }
             }
         } else if (resultCode == Activity.RESULT_CANCELED) {
-            Intent resultIntent = new Intent();
-            resultIntent.putExtra("logged_in", loggedIn);
-            setResult(Activity.RESULT_CANCELED, resultIntent);
+            setResult(Activity.RESULT_CANCELED);
             finish();
         } else {
             Intent resultIntent = new Intent();
-            resultIntent.putExtra("logged_in", loggedIn);
             resultIntent.putExtra("error", resultCode);
             setResult(Activity.RESULT_CANCELED, resultIntent);
             finish();

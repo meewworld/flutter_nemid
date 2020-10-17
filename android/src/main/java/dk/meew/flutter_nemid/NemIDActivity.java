@@ -111,7 +111,6 @@ public class NemIDActivity extends Activity {
         @JavascriptInterface
         @SuppressWarnings("unused") // getResponse is called from JavaScript
         public void getResponse(final String response) {
-            System.out.println(response);
             MainActivity.flowResponse = response;
             setResult(Activity.RESULT_OK);
             // Destroy the webview on the UI thread
@@ -361,7 +360,6 @@ public class NemIDActivity extends Activity {
                 + "giveResponseToAndroid();"
                 + "} "
                 + " if (message.command === \"AwaitingAppApproval\") { "
-                + "console.log('test');"
                 + "NemIDActivityJSI.performAppSwitch();"
                 + "} "
                 + " if (message.command === \"RequestKeyboard\") { "
