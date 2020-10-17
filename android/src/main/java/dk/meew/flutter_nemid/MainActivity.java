@@ -1,10 +1,13 @@
 package dk.meew.flutter_nemid;
 
 import java.io.IOException;
+
 import java.util.Map;
 import java.util.Random;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+
 import dk.meew.flutter_nemid.communication.RestJsonHelper;
 import dk.meew.flutter_nemid.communication.RetrofitHelper;
 import dk.meew.flutter_nemid.communication.SPRestService;
@@ -12,6 +15,7 @@ import dk.meew.flutter_nemid.utilities.Base64;
 import dk.meew.flutter_nemid.utilities.Logger;
 import dk.meew.flutter_nemid.utilities.StringHelper;
 import dk.meew.flutter_nemid.communication.ValidationResponse;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Headers;
@@ -121,9 +125,7 @@ public class MainActivity extends Activity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-
                 parameters = response.body().string();
-
                 ClientDimensions clientDimensions = getClientDimensions();
                 // Start NemIDActivity
                 Intent openWebViewIntent = getWebIntent(getFlowUrl(), clientDimensions);
@@ -192,9 +194,10 @@ public class MainActivity extends Activity {
                     finish();
                 }
             });
-
         } catch (JSONException e) {
-            e.printStackTrace();
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra("result", e.getMessage());
+            setResult(Activity.RESULT_CANCELED, resultIntent);
         }
     }
     //endregion

@@ -25,7 +25,6 @@
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:5.0];
     request.HTTPShouldHandleCookies = YES;
     NSData *data = [dataStr dataUsingEncoding:NSUTF8StringEncoding];
-    
     [request setHTTPMethod:type];
     [request setValue:@"application/x-www-form-urlencoded;charset=UTF-8" forHTTPHeaderField:@"Content-Type"];
     [request setValue:[NSString stringWithFormat:@"%lu", (unsigned long)[data length]] forHTTPHeaderField:@"Content-length"];
@@ -37,7 +36,6 @@
     NSData *data = [dataStr dataUsingEncoding:NSUTF8StringEncoding];
     NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     NSString *logString = [NSString stringWithFormat:@"{\"response\":\"%@\"}", string];
-    
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
     NSData *requestData = [NSData dataWithBytes:[logString UTF8String] length:[logString length]];
     [request setHTTPMethod:@"POST"];

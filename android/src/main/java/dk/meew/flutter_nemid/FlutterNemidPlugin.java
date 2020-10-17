@@ -114,7 +114,7 @@ public class FlutterNemidPlugin implements FlutterPlugin, MethodCallHandler, Act
           mResult.error("503", "Login was canceled", "");
         }
       } catch (JSONException e) {
-        e.printStackTrace();
+        mResult.error("503", e.getMessage(), "");
       }
     }
     return true;
