@@ -179,18 +179,24 @@
 
 #pragma mark - App Switch
 
+- (BOOL) codeAppAvailable {
+	UIApplication *application = [UIApplication sharedApplication];
+	NSURL *URL = [NSURL URLWithString:@"nemid-codeapp://codeapp.e-nettet.dk"];
+	return [application canOpenURL:URL];
+}
+
+- (void) doAppSwitchWithReturnUrl:(NSString *) returnUrl {
+	if([self codeAppAvailable]){
+		UIApplication *application = [UIApplication sharedApplication];
+		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"https://codeapp.e-nettet.dk?return=%@", returnUrl]];
+		if(url != nil){
+			[application openURL:url];
+		}
+	}
+}
+
 - (void)enableAppSwitch {
-    UIAlertController* alert = [UIAlertController alertControllerWithTitle:nil
-                                                                   message:@"Ready to perform App Switch"
-                                                            preferredStyle:UIAlertControllerStyleAlert];
-    
-    UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
-                                                          handler:^(UIAlertAction * action) {
-		[NemIDAppSwitcher doAppSwitchWithReturnUrl:@"flutternemid://nemidfinished"];
-    }];
-    
-    [alert addAction:defaultAction];
-    [self presentViewController:alert animated:YES completion:nil];
+	[self doAppSwitchWithReturnUrl:@"flutternemid://nemidfinished"];
 }
 
 #pragma mark - UIWebview delegate methods

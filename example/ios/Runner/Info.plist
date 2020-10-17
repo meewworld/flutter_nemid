@@ -25,6 +25,10 @@
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
 			<string>dk.meew.flutterNemidExample</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>flutternemid</string>
+			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
@@ -54,9 +58,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>nemid-codeapp</string>
-	</array>
 </dict>
 </plist>
