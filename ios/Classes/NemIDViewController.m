@@ -10,15 +10,13 @@
 #import "ValidationFetcher.h"
 #import "QuartzCore/QuartzCore.h"
 
-@interface NemIDViewController () <UIWebViewDelegate, WKNavigationDelegate, UIPrintInteractionControllerDelegate> {
+@interface NemIDViewController () <WKNavigationDelegate, UIPrintInteractionControllerDelegate> {
     float iframeWidth;
     float iframeHeight;
 }
 
 @property (strong, nonatomic) IBOutlet UIView *placeholderForWebViews;
-@property (strong, nonatomic) UIWebView *uiWebView;
 @property (strong, nonatomic) WKWebView *wkWebView;
-@property (strong, nonatomic) UIWebView* printWebView;
 @end
 
 @implementation NemIDViewController
@@ -63,37 +61,16 @@
     frame.origin.x = 0;
     frame.origin.y = 0;
     
-    if(self.useWKWebView) {
-        WKWebViewConfiguration *theConfiguration = [[WKWebViewConfiguration alloc] init];
-        self.wkWebView = [[WKWebView alloc] initWithFrame:frame configuration:theConfiguration];
-        self.wkWebView.navigationDelegate = self;
-        [self.placeholderForWebViews addSubview:self.wkWebView];
-        self.wkWebView.scrollView.scrollEnabled = YES;
-        self.wkWebView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-        [self.wkWebView loadHTMLString:html baseURL:[NSURL URLWithString:url]];
-    } else {
-        self.uiWebView = [[UIWebView alloc] initWithFrame:frame];
-        self.uiWebView.delegate = self;
-        self.uiWebView.scrollView.scrollEnabled = YES;
-        self.uiWebView.scalesPageToFit = YES;
-        self.uiWebView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-        [self.placeholderForWebViews addSubview:self.uiWebView];
-        [self disableLongPressGestures:self.uiWebView];
-        [self.uiWebView loadHTMLString:html baseURL:[NSURL URLWithString:url]];
-    }
+	WKWebViewConfiguration *theConfiguration = [[WKWebViewConfiguration alloc] init];
+	self.wkWebView = [[WKWebView alloc] initWithFrame:frame configuration:theConfiguration];
+	self.wkWebView.navigationDelegate = self;
+	[self.placeholderForWebViews addSubview:self.wkWebView];
+	self.wkWebView.scrollView.scrollEnabled = YES;
+	self.wkWebView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+	[self.wkWebView loadHTMLString:html baseURL:[NSURL URLWithString:url]];
 }
 
 #pragma mark - Helper methods
-
-- (void)disableLongPressGestures:(UIWebView *)webView {
-    UILongPressGestureRecognizer* longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:nil];
-    longPress.allowableMovement=100;
-    longPress.minimumPressDuration=0.3;
-    longPress.delaysTouchesBegan=YES;
-    longPress.delaysTouchesEnded=YES;
-    longPress.cancelsTouchesInView=YES;
-    [webView addGestureRecognizer:longPress];
-}
 
 - (NSString*)getJavascript{
     NSString *js =
@@ -145,38 +122,6 @@
     return [NSString stringWithFormat:js, self.nemIDJavascriptURL, self.parameters, (int)iframeHeight, (int)iframeWidth];
 }
 
-#pragma mark - Printing
-
-- (void)printContent:(NSString*)dataStr {
-    self.printWebView = [[UIWebView alloc] init];
-    self.printWebView.tag = 123;
-    self.printWebView.delegate = self;
-    [self.printWebView loadHTMLString:dataStr baseURL:nil];
-}
-
--(void)printFromWebView{
-    UIViewPrintFormatter* formatter = self.printWebView.viewPrintFormatter;
-    UIPrintInteractionController *pic = [UIPrintInteractionController sharedPrintController];
-    if  (pic) {
-        pic.printFormatter = formatter;
-        pic.delegate = self;
-        
-        UIPrintInfo *printInfo = [UIPrintInfo printInfo];
-        printInfo.outputType = UIPrintInfoOutputGeneral;
-        printInfo.jobName = @"NemID";
-        pic.printInfo = printInfo;
-        
-        void (^completionHandler)(UIPrintInteractionController *, BOOL, NSError *) =
-        ^(UIPrintInteractionController *pic, BOOL completed, NSError *error) {
-            if (!completed && error){
-                NSLog(@"PRINTING FAILED! Due to error in domain %@ with description: %@",
-                      error.domain, error.description);
-            }
-        };
-        [pic presentAnimated:YES completionHandler:completionHandler];
-    }
-}
-
 #pragma mark - App Switch
 
 - (BOOL) codeAppAvailable {
@@ -197,61 +142,6 @@
 
 - (void)enableAppSwitch {
 	[self doAppSwitchWithReturnUrl:@"flutternemid://nemidfinished"];
-}
-
-#pragma mark - UIWebview delegate methods
-
-- (void)webViewDidFinishLoad:(UIWebView *)webView{
-    if (webView == self.printWebView) {
-        [self printFromWebView];
-        return;
-    }
-    
-    if (webView.isLoading) {
-        return;
-    }
-    NSLog(@"webViewDidFinishLoad url: %@", [webView.request mainDocumentURL]);
-    
-    [webView stringByEvaluatingJavaScriptFromString:@"document.body.style.margin='0';document.body.style.padding='0'"];
-}
-
--(BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
-    NSLog(@"UIWebView handle request: %@", request);
-    
-    // Evaluate Javascript
-    if ([[request.URL scheme] isEqualToString:@"changeresponseandsubmit"]) {
-        NSString *content = [webView stringByEvaluatingJavaScriptFromString:@"getContent();"];
-        NSString *contentNormalized = [NetworkUtilities base64Decode:content];
-        NSLog(@"Got content while evaluating getContent(): %@", contentNormalized);
-        
-        [self putSignResponse:content withSuccess:^(ValidationResponse *validationResponse) {
-            [self validateResponse:validationResponse];
-            [self getFlowDetailsFromValidationResponse:validationResponse andJSClientResponse:contentNormalized];
-        } error:^(NSInteger errorCode, NSString *errorMessage) {
-            [NSString stringWithFormat:@"Internal app error.\nError code: %lu\n %@Error message: ",errorCode,errorMessage];
-        }];
-        [self.navigationController popToRootViewControllerAnimated:YES];
-        
-        return NO;
-    }
-    
-    if ([[request.URL scheme] isEqualToString:@"awaitingappapproval"]) {
-        [self enableAppSwitch];
-        return NO;
-    }
-    
-    if ([[request.URL scheme] isEqualToString:@"requestprint"]) {
-        NSString* dataStr = [NetworkUtilities base64Decode:[webView stringByEvaluatingJavaScriptFromString:@"getContent();"]];
-        [self printContent:dataStr];
-    }
-
-    // Open external NemID links in native browser
-    if ( navigationType == UIWebViewNavigationTypeLinkClicked ){
-        NSLog(@"Opening link in native browser: %@", request);
-        [[UIApplication sharedApplication] openURL:[request URL]];
-        return NO;
-    }
-    return YES;
 }
 
 - (void)putSignResponse:(NSString *) xmlDsig withSuccess:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock {
@@ -330,15 +220,6 @@
         return;
     }
     
-    if ([[navigationAction.request.URL scheme] isEqualToString:@"requestprint"]) {
-        [webView evaluateJavaScript:@"getContent();" completionHandler:^(NSString *content, NSError* error){
-            if (!error){
-                NSString* dataStr = [NetworkUtilities base64Decode:content];
-                [self printContent:dataStr];
-            }
-        }];
-    }
-
     // Open external NemID links in native browser
     if (navigationAction.navigationType == WKNavigationTypeLinkActivated)
     {

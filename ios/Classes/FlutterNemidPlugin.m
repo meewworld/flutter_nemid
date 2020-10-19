@@ -63,7 +63,6 @@
               nemIDViewController.width = clientDimensions.width;
               nemIDViewController.height = clientDimensions.height;
               nemIDViewController.controller = self;
-              nemIDViewController.useWKWebView = @"FALSE";
               
               [[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:nemIDViewController animated:YES completion:nil];
           }
