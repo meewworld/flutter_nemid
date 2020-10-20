@@ -25,7 +25,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> initPlatformState() async {
-    await FlutterNemid.setupBackendEndpoints(signingEndpoint: "https://api.phoneloan.dk/v1/nemid/parameters/", validationEndpoint: "https://api.phoneloan.dk/v1/nemid/response/");
+    await FlutterNemid.setupBackendEndpoints(signingEndpoint: "YOUR_PARAMETER_SIGNING_ENDPOINT", validationEndpoint: "YOUR_VALIDATION_ENDPOINT");
     String response;
 
     try {
