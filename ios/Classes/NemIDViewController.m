@@ -10,15 +10,13 @@
 #import "ValidationFetcher.h"
 #import "QuartzCore/QuartzCore.h"
 
-@interface NemIDViewController () <UIWebViewDelegate, WKNavigationDelegate, UIPrintInteractionControllerDelegate> {
+@interface NemIDViewController () <WKNavigationDelegate, UIPrintInteractionControllerDelegate> {
     float iframeWidth;
     float iframeHeight;
 }
 
 @property (strong, nonatomic) IBOutlet UIView *placeholderForWebViews;
-@property (strong, nonatomic) UIWebView *uiWebView;
 @property (strong, nonatomic) WKWebView *wkWebView;
-@property (strong, nonatomic) UIWebView* printWebView;
 @end
 
 @implementation NemIDViewController
@@ -63,37 +61,16 @@
     frame.origin.x = 0;
     frame.origin.y = 0;
     
-    if(self.useWKWebView) {
-        WKWebViewConfiguration *theConfiguration = [[WKWebViewConfiguration alloc] init];
-        self.wkWebView = [[WKWebView alloc] initWithFrame:frame configuration:theConfiguration];
-        self.wkWebView.navigationDelegate = self;
-        [self.placeholderForWebViews addSubview:self.wkWebView];
-        self.wkWebView.scrollView.scrollEnabled = YES;
-        self.wkWebView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-        [self.wkWebView loadHTMLString:html baseURL:[NSURL URLWithString:url]];
-    } else {
-        self.uiWebView = [[UIWebView alloc] initWithFrame:frame];
-        self.uiWebView.delegate = self;
-        self.uiWebView.scrollView.scrollEnabled = YES;
-        self.uiWebView.scalesPageToFit = YES;
-        self.uiWebView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-        [self.placeholderForWebViews addSubview:self.uiWebView];
-        [self disableLongPressGestures:self.uiWebView];
-        [self.uiWebView loadHTMLString:html baseURL:[NSURL URLWithString:url]];
-    }
+	WKWebViewConfiguration *theConfiguration = [[WKWebViewConfiguration alloc] init];
+	self.wkWebView = [[WKWebView alloc] initWithFrame:frame configuration:theConfiguration];
+	self.wkWebView.navigationDelegate = self;
+	[self.placeholderForWebViews addSubview:self.wkWebView];
+	self.wkWebView.scrollView.scrollEnabled = YES;
+	self.wkWebView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+	[self.wkWebView loadHTMLString:html baseURL:[NSURL URLWithString:url]];
 }
 
 #pragma mark - Helper methods
-
-- (void)disableLongPressGestures:(UIWebView *)webView {
-    UILongPressGestureRecognizer* longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:nil];
-    longPress.allowableMovement=100;
-    longPress.minimumPressDuration=0.3;
-    longPress.delaysTouchesBegan=YES;
-    longPress.delaysTouchesEnded=YES;
-    longPress.cancelsTouchesInView=YES;
-    [webView addGestureRecognizer:longPress];
-}
 
 - (NSString*)getJavascript{
     NSString *js =
@@ -145,156 +122,41 @@
     return [NSString stringWithFormat:js, self.nemIDJavascriptURL, self.parameters, (int)iframeHeight, (int)iframeWidth];
 }
 
-// Sends response to SP backend for validation
-- (void)putResponse:(NSString*)response withRequestType:(RequestType)requestType andSucces:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock{
-        switch (requestType) {
-            case RequestTypeOneFactorLogin:
-            case RequestTypeTwoFactorLogin:
-                [self putSamlResponse:response withSuccess:successBlock error:errorBlock issuer:@"49"];
-                break;
-            case RequestTypeOneFactorSign:
-            case RequestTypeTwoFactorSign:
-                [self putSignResponse:response withSuccess:successBlock error:errorBlock issuer:@"49"];
-            case RequestTypeTwoFactorLoginLongTerm:
-            case RequestTypeTwoFactorSignLongTerm:
-                [self putSignResponse:response withSuccess:successBlock error:errorBlock issuer:@"1"];
-            default:
-                break;
-        }
-}
-
-#pragma mark - Printing
-
-- (void)printContent:(NSString*)dataStr {
-    self.printWebView = [[UIWebView alloc] init];
-    self.printWebView.tag = 123;
-    self.printWebView.delegate = self;
-    [self.printWebView loadHTMLString:dataStr baseURL:nil];
-}
-
--(void)printFromWebView{
-    UIViewPrintFormatter* formatter = self.printWebView.viewPrintFormatter;
-    UIPrintInteractionController *pic = [UIPrintInteractionController sharedPrintController];
-    if  (pic) {
-        pic.printFormatter = formatter;
-        pic.delegate = self;
-        
-        UIPrintInfo *printInfo = [UIPrintInfo printInfo];
-        printInfo.outputType = UIPrintInfoOutputGeneral;
-        printInfo.jobName = @"NemID";
-        pic.printInfo = printInfo;
-        
-        void (^completionHandler)(UIPrintInteractionController *, BOOL, NSError *) =
-        ^(UIPrintInteractionController *pic, BOOL completed, NSError *error) {
-            if (!completed && error){
-                NSLog(@"PRINTING FAILED! Due to error in domain %@ with description: %@",
-                      error.domain, error.description);
-            }
-        };
-        [pic presentAnimated:YES completionHandler:completionHandler];
-    }
-}
-
 #pragma mark - App Switch
 
+- (BOOL) codeAppAvailable {
+	UIApplication *application = [UIApplication sharedApplication];
+	NSURL *URL = [NSURL URLWithString:@"nemid-codeapp://codeapp.e-nettet.dk"];
+	return [application canOpenURL:URL];
+}
+
+- (void) doAppSwitchWithReturnUrl:(NSString *) returnUrl {
+	if([self codeAppAvailable]){
+		UIApplication *application = [UIApplication sharedApplication];
+		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"https://codeapp.e-nettet.dk?return=%@", returnUrl]];
+		if(url != nil){
+			[application openURL:url];
+		}
+	}
+}
+
 - (void)enableAppSwitch {
-    UIAlertController* alert = [UIAlertController alertControllerWithTitle:nil
-                                                                   message:@"Ready to perform App Switch"
-                                                            preferredStyle:UIAlertControllerStyleAlert];
-    
-    UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
-                                                          handler:^(UIAlertAction * action) {}];
-    
-    [alert addAction:defaultAction];
-    [self presentViewController:alert animated:YES completion:nil];
+	[self doAppSwitchWithReturnUrl:@"flutternemid://nemidfinished"];
 }
 
-#pragma mark - UIWebview delegate methods
-
-- (void)webViewDidFinishLoad:(UIWebView *)webView{
-    if (webView == self.printWebView) {
-        [self printFromWebView];
-        return;
-    }
-    
-    if (webView.isLoading) {
-        return;
-    }
-    NSLog(@"webViewDidFinishLoad url: %@", [webView.request mainDocumentURL]);
-    
-    [webView stringByEvaluatingJavaScriptFromString:@"document.body.style.margin='0';document.body.style.padding='0'"];
-}
-
--(BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
-    NSLog(@"UIWebView handle request: %@", request);
-    
-    // Evaluate Javascript
-    if ([[request.URL scheme] isEqualToString:@"changeresponseandsubmit"]) {
-        NSString *content = [webView stringByEvaluatingJavaScriptFromString:@"getContent();"];
-        NSString *contentNormalized = [NetworkUtilities base64Decode:content];
-        NSLog(@"Got content while evaluating getContent(): %@", contentNormalized);
-        
-        [self putResponse:content withRequestType:RequestTypeTwoFactorLoginLongTerm andSucces:^(ValidationResponse *validationResponse) {
-            [self validateResponse:validationResponse];
-            [self getFlowDetailsFromValidationResponse:validationResponse andJSClientResponse:contentNormalized];
-        } error:^(NSInteger errorCode, NSString *errorMessage) {
-            [NSString stringWithFormat:@"Internal app error.\nError code: %lu\n %@Error message: ",errorCode,errorMessage];
-        }];
-        [self.navigationController popToRootViewControllerAnimated:YES];
-        
-        return NO;
-    }
-    
-    if ([[request.URL scheme] isEqualToString:@"awaitingappapproval"]) {
-        [self enableAppSwitch];
-        return NO;
-    }
-    
-    if ([[request.URL scheme] isEqualToString:@"requestprint"]) {
-        NSString* dataStr = [NetworkUtilities base64Decode:[webView stringByEvaluatingJavaScriptFromString:@"getContent();"]];
-        [self printContent:dataStr];
-    }
-
-    // Open external NemID links in native browser
-    if ( navigationType == UIWebViewNavigationTypeLinkClicked ){
-        NSLog(@"Opening link in native browser: %@", request);
-        [[UIApplication sharedApplication] openURL:[request URL]];
-        return NO;
-    }
-    return YES;
-}
-
-- (void)putSamlResponse:(NSString *) saml withSuccess:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock issuer:(NSString *) issuer{
-    [ValidationFetcher fetchLoginValidationWithBackendUrl:self.controller.spBackendURL andData:saml success:successBlock
-    error:^(NSInteger errorCode, NSString *errorMessage) {
-        NSLog(@"Error during putSamlResponse. ErrorCode was: %lu. ErrorMessage was: %@", (long)errorCode, errorMessage);
-        errorBlock(errorCode,errorMessage);
-    }
-     issuer:issuer];
-}
-
-- (void)putSignResponse:(NSString *) xmlDsig withSuccess:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock issuer:(NSString *) issuer {
-    [ValidationFetcher fetchSignValidationWithBackendUrl:self.controller.spBackendURL andData:xmlDsig success:successBlock
+- (void)putSignResponse:(NSString *) xmlDsig withSuccess:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock {
+    [ValidationFetcher fetchValidationWithBackendUrl:self.controller.validationEndpoint andData:xmlDsig success:successBlock
     error:^(NSInteger errorCode, NSString *errorMessage) {
         NSLog(@"Error during putSignResponse. ErrorCode was: %lu. ErrorMessage was: %@", (long)errorCode, errorMessage);
         errorBlock(errorCode,errorMessage);
     }
-     issuer:issuer];
+     ];
 }
 
 - (void)validateResponse:(ValidationResponse *)response{
     NSLog(@"VALIDATION RESPONSE: %@",response);
-    if ([response.validationResult isEqualToString:@"OK"]){
-        //Succesful flow, signature was validated succesfully by the SP backend
-        [self.controller setLoggedInTo:YES];
-    }
-    if ([response.validationResult isEqualToString:@"FAILED VALIDATION"]){
-        //Failed Signature validation
-    }
-    if ([response.validationResult isEqualToString:@"FAILED SYSTEM EXCEPTION"]){
-        //Response was malformed, or backend error occured
-    }
-    [self.controller sendResult];
+    NSString *responseString = [NSString stringWithFormat:@"%@", response];
+    [self.controller sendResult:responseString];
 }
 
 - (NSString *)getFlowDetailsFromValidationResponse:(ValidationResponse *) valResponse andJSClientResponse:(NSString *) content{
@@ -310,8 +172,8 @@
                             %@";
     
     NSMutableString *result = [[NSMutableString alloc] init];
-    if(valResponse.resultDetails!=nil){
-        [result appendString:[NSString stringWithFormat:resultDetailsHeader, valResponse.resultDetails]];
+    if(valResponse.result!=nil){
+        [result appendString:[NSString stringWithFormat:resultDetailsHeader, valResponse.result]];
     }
     [result appendString:[NSString stringWithFormat:flowDetails, content]];
     
@@ -337,7 +199,7 @@
                       } else {
                           contentNormalized = [NetworkUtilities base64Decode:content];
                           NSLog(@"Got content while evaluating getContent(): %@", contentNormalized);
-                          [self putResponse:content withRequestType:RequestTypeTwoFactorLoginLongTerm andSucces:^(ValidationResponse *validationResponse) {
+                          [self putSignResponse:content withSuccess:^(ValidationResponse *validationResponse) {
                               [self validateResponse:validationResponse];
                               [self getFlowDetailsFromValidationResponse:validationResponse andJSClientResponse:contentNormalized];
                               [self dismissViewControllerAnimated:NO completion:nil];
@@ -358,15 +220,6 @@
         return;
     }
     
-    if ([[navigationAction.request.URL scheme] isEqualToString:@"requestprint"]) {
-        [webView evaluateJavaScript:@"getContent();" completionHandler:^(NSString *content, NSError* error){
-            if (!error){
-                NSString* dataStr = [NetworkUtilities base64Decode:content];
-                [self printContent:dataStr];
-            }
-        }];
-    }
-
     // Open external NemID links in native browser
     if (navigationAction.navigationType == WKNavigationTypeLinkActivated)
     {

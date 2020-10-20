@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -14,7 +16,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  bool _loggedIn = false;
+  Map<String, dynamic> _response;
 
   @override
   void initState() {
@@ -23,19 +25,36 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> initPlatformState() async {
-    bool loggedIn;
+    await FlutterNemid.setupBackendEndpoints(signingEndpoint: "YOUR_PARAMETER_SIGNING_ENDPOINT", validationEndpoint: "YOUR_VALIDATION_ENDPOINT");
+    String response;
 
     try {
-      loggedIn = await FlutterNemid.startNemIDLogin;
+      response = await FlutterNemid.startNemIDLogin;
     } on PlatformException {
-      loggedIn = false;
+      response = null;
     }
 
     if (!mounted) return;
 
     setState(() {
-      _loggedIn = loggedIn;
+      _response = jsonDecode(response);
     });
+  }
+
+  String getResult(){
+    String result = "";
+
+    if(_response != null) {
+      if (_response.containsKey("status")) {
+        result += "Status: ${_response['status']}\n";
+      }
+
+      if (_response.containsKey("result")) {
+        result += "Result: ${_response['result']}\n";
+      }
+    }
+
+    return result;
   }
 
   @override
@@ -54,7 +73,10 @@ class _MyAppState extends State<MyApp> {
                 onPressed: initPlatformState,
                 child: Text("NemID Login"),
               ),
-              Text('Is logged in: $_loggedIn\n'),
+              Text(
+                getResult(),
+                textAlign: TextAlign.center,
+              ),
             ],
           ),
         ),

@@ -11,17 +11,15 @@
 - (id)initWithDictionary:(NSDictionary*)dict {
     self = [super init];
     if (self) {
-        self.validationResult = [dict objectForKey:@"VALIDATION_RESULT"];
-        self.resultDetails = [dict objectForKey:@"RESULT_DETAILS"];
-        self.rememberUseridToken = [dict objectForKey:@"REMEMBER_USERID"];
-        self.logOutResult = [dict objectForKey:@"LOGOUT"];
+        self.result = [dict objectForKey:@"result"];
+        self.status = [dict objectForKey:@"status"];
     }
     return self;
 }
 
 - (NSString*)description{
-    NSString* resultFormat = @"validationResult = \"%@\", resultdetails = \"%@\", rememberUseridToken = \"%@\"";
-    return [NSString stringWithFormat:resultFormat, self.validationResult, self.resultDetails, self.rememberUseridToken];
+    NSString* resultFormat = @"{\"status\": \"%@\", \"result\": %@}";
+    return [NSString stringWithFormat:resultFormat, self.status, self.result];
 }
 
 @end

@@ -22,7 +22,6 @@
 @property (nonatomic) NSString *width;
 @property (nonatomic) NSString *height;
 @property (nonatomic) NSString *nemIDJavascriptURL;
-@property (readwrite) BOOL useWKWebView;
 @property (nonatomic) FlutterNemidPlugin *controller;
 
 @end

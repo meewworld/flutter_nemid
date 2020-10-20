@@ -14,13 +14,17 @@
 + (void)fetch:(NSURL *)url andSaml:(NSString *)dataString success:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock {
     NSLog(@"Fetching validation from url:%@ with data:%@", url, dataString);
     
-    NSURLRequest *request = [NetworkUtilities urlRequestWithUrl:url andDataString:dataString];
+    NSURLRequest *request = [NetworkUtilities urlRequestWithData:url andDataString:dataString requestType:@"POST"];
     NSURLSessionConfiguration *sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
     NSURLSession *session = [NSURLSession sessionWithConfiguration:sessionConfig];
     
     [[session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {  
         if (!error) {
-            NSDictionary *dict = [NetworkUtilities parseKeyValueResponse:data];
+            NSMutableDictionary *dict = [NetworkUtilities parseKeyValueResponse:data];
+            NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *) response;
+            NSInteger statusCode = 0;
+            statusCode = httpResponse.statusCode;
+            [dict setObject:[NSNumber numberWithInt:statusCode] forKey:@"status"];
             NSLog(@"Validation response fetched from url:%@ with result:%@", url, dict);
             dispatch_sync(dispatch_get_main_queue(), ^{
                successBlock([[ValidationResponse alloc] initWithDictionary:dict]);
@@ -35,19 +39,10 @@
 }
 
 
-#pragma mark - Login validation
+#pragma mark - Validation
 
-+ (void)fetchLoginValidationWithBackendUrl:(NSString *)urlStr andData:(NSString *)dataStr success:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock issuer:(NSString *) issuer{
-    NSString *samlProviderUrl = [NSString stringWithFormat:@"%@%@", urlStr, SamlReceiverURL];
-    [self fetch:[NSURL URLWithString:samlProviderUrl] andSaml:[NSString stringWithFormat:@"response=%@&issuer=%@", [NetworkUtilities urlEncode:dataStr],issuer] success:successBlock error:errorBlock];
-}
-
-
-#pragma mark - Sign validation
-
-+ (void)fetchSignValidationWithBackendUrl:(NSString *)urlStr andData:(NSString *)dataStr success:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock issuer:(NSString *) issuer {
-    NSString *signProviderUrl = [NSString stringWithFormat:@"%@%@", urlStr, SignProviderURL];
-    [self fetch:[NSURL URLWithString:signProviderUrl] andSaml:[NSString stringWithFormat:@"response=%@&issuer=%@", [NetworkUtilities urlEncode:dataStr], issuer] success:successBlock error:errorBlock];
++ (void)fetchValidationWithBackendUrl:(NSString *)urlStr andData:(NSString *)dataStr success:(ValidationFetcherSuccessBlock)successBlock error:(ValidationFetcherErrorBlock)errorBlock {
+    [self fetch:[NSURL URLWithString:urlStr] andSaml:dataStr success:successBlock error:errorBlock];
 }
 
 

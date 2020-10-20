@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -110,11 +111,7 @@ public class NemIDActivity extends Activity {
         @JavascriptInterface
         @SuppressWarnings("unused") // getResponse is called from JavaScript
         public void getResponse(final String response) {
-            byte[] bytes = Base64.decode(response);
-            String string = StringHelper.toUtf8String(bytes);
-
-            logLargeResponse(string);
-            MainActivity.flowResponse = string;
+            MainActivity.flowResponse = response;
             setResult(Activity.RESULT_OK);
             // Destroy the webview on the UI thread
             jsWebView.post(new Runnable() {
@@ -156,7 +153,18 @@ public class NemIDActivity extends Activity {
         @SuppressWarnings("unused")
         @JavascriptInterface
         public void performAppSwitch() {
-            Toast.makeText(NemIDActivity.this, "Ready to perform App Switch", Toast.LENGTH_LONG).show();
+            boolean hasCodeApp = false;
+            try {
+                getPackageManager().getPackageInfo("dk.e_nettet.mobilekey.everyone", 0);
+                hasCodeApp = true;
+            } catch (PackageManager.NameNotFoundException e) {
+                hasCodeApp = false;
+            }
+            if(hasCodeApp){
+                Intent secondFactorIntent = getPackageManager().getLaunchIntentForPackage("dk.e_nettet.mobilekey.everyone");
+                secondFactorIntent.setFlags(0);
+                startActivityForResult(secondFactorIntent, 0);
+            }
         }
     }
 
@@ -200,31 +208,6 @@ public class NemIDActivity extends Activity {
         } else {
             PrintUtils printUtils = new PrintUtils();
             printUtils.createWebPrintJob(webView, this);
-        }
-    }
-    //endregion
-
-
-    //region Logging
-    /**
-     * Android logs blank statements on large strings, upon large flow-results in combination
-     * with signing flows this method truncates the response, to ensure logging is possible.
-     *
-     * @param string String to be logged
-     */
-    private void logLargeResponse(String string) {
-        int length = string.length();
-        int logMaxLength = 2000;
-        if (length > logMaxLength) {
-            StringBuffer stringBuffer = new StringBuffer();
-            stringBuffer.append(string.substring(0, logMaxLength / 2));
-            stringBuffer.append("\n...\n");
-            stringBuffer.append("<TRUNCATED RESPONSE ON MOBILE>");
-            stringBuffer.append("\n...\n");
-            stringBuffer.append(string.substring(length - logMaxLength / 2));
-            Logger.d(LOGTAG, stringBuffer.toString());
-        } else {
-            Logger.d(LOGTAG, string);
         }
     }
     //endregion
