@@ -26,8 +26,6 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
-import com.google.gson.Gson;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -185,7 +183,7 @@ public class MainActivity extends Activity {
                     Intent resultIntent = new Intent();
                     if (response.isSuccessful()) {
                         result = response.body().string();
-                        headers = new Gson().toJson(response.headers());
+                        headers = response.headers().toMultimap().toString();
                         setResult(Activity.RESULT_OK, resultIntent);
                     } else {
                         setResult(Activity.RESULT_CANCELED, resultIntent);
