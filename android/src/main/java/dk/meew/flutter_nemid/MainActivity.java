@@ -2,29 +2,20 @@ package dk.meew.flutter_nemid;
 
 import java.io.IOException;
 
-import java.util.Map;
 import java.util.Random;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
-import dk.meew.flutter_nemid.communication.RestJsonHelper;
-import dk.meew.flutter_nemid.communication.RetrofitHelper;
-import dk.meew.flutter_nemid.communication.SPRestService;
-import dk.meew.flutter_nemid.utilities.Base64;
 import dk.meew.flutter_nemid.utilities.Logger;
-import dk.meew.flutter_nemid.utilities.StringHelper;
-import dk.meew.flutter_nemid.communication.ValidationResponse;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -34,6 +25,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
+
+import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -192,7 +185,7 @@ public class MainActivity extends Activity {
                     Intent resultIntent = new Intent();
                     if (response.isSuccessful()) {
                         result = response.body().string();
-                        headers = response.headers().toString();
+                        headers = new Gson().toJson(response.headers());
                         setResult(Activity.RESULT_OK, resultIntent);
                     } else {
                         setResult(Activity.RESULT_CANCELED, resultIntent);
