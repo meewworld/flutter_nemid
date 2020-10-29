@@ -183,7 +183,15 @@ public class MainActivity extends Activity {
                     Intent resultIntent = new Intent();
                     if (response.isSuccessful()) {
                         result = response.body().string();
-                        headers = response.headers().toMultimap().toString();
+                        JSONObject headersObject = new JSONObject();
+                        try {
+                            for(String name : response.headers().names()){
+                                headersObject.put(name, response.header(name));
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        headers = headersObject.toString();
                         setResult(Activity.RESULT_OK, resultIntent);
                     } else {
                         setResult(Activity.RESULT_CANCELED, resultIntent);
