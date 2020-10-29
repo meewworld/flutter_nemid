@@ -19,7 +19,7 @@
 }
 
 - (NSString*)description{
-    NSString* resultFormat = @"{\"status\": \"%@\", \"headers\": \"%@\", \"result\": %@}";
+    NSString* resultFormat = @"{\"status\": \"%@\", \"headers\": %@, \"result\": %@}";
     return [NSString stringWithFormat:resultFormat, self.status, self.headers, self.result];
 }
 

@@ -25,7 +25,10 @@
             NSInteger statusCode = 0;
             statusCode = httpResponse.statusCode;
             [dict setObject:[NSNumber numberWithInt:statusCode] forKey:@"status"];
-
+			
+			NSData *headerData = [NSJSONSerialization dataWithJSONObject:httpResponse.allHeaderFields options:0 error:nil];
+			NSString *headerDataString = [[NSString alloc] initWithData:headerData encoding:NSUTF8StringEncoding];
+			[dict setObject:headerDataString forKey:@"headers"];
             NSLog(@"Validation response fetched from url:%@ with result:%@", url, dict);
             dispatch_sync(dispatch_get_main_queue(), ^{
                successBlock([[ValidationResponse alloc] initWithDictionary:dict]);
