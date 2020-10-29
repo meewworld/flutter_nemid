@@ -142,7 +142,13 @@ public class MainActivity extends Activity {
                 if(!flowResponse.isEmpty()){
                     if(flowResponse.length() > 20){
                         validateResponse();
+                    } else {
+                        setResult(Activity.RESULT_CANCELED);
+                        finish();
                     }
+                } else {
+                    setResult(Activity.RESULT_CANCELED);
+                    finish();
                 }
             }
         } else if (resultCode == Activity.RESULT_CANCELED) {
@@ -168,12 +174,14 @@ public class MainActivity extends Activity {
 
             client.newCall(request).enqueue(new Callback() {
                 String result = "";
+                String headers = "";
 
                 @Override
                 public void onFailure(Call call, IOException e) {
                     result = e.getMessage();
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra("result", result);
+                    resultIntent.putExtra("headers", headers);
                     setResult(Activity.RESULT_CANCELED, resultIntent);
                     finish();
                 }
@@ -184,12 +192,14 @@ public class MainActivity extends Activity {
                     Intent resultIntent = new Intent();
                     if (response.isSuccessful()) {
                         result = response.body().string();
+                        headers = response.headers().toString();
                         setResult(Activity.RESULT_OK, resultIntent);
                     } else {
                         setResult(Activity.RESULT_CANCELED, resultIntent);
                     }
 
                     resultIntent.putExtra("result", result);
+                    resultIntent.putExtra("headers", headers);
                     resultIntent.putExtra("status", response.code());
                     finish();
                 }

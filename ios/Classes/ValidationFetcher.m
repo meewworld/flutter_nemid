@@ -25,6 +25,7 @@
             NSInteger statusCode = 0;
             statusCode = httpResponse.statusCode;
             [dict setObject:[NSNumber numberWithInt:statusCode] forKey:@"status"];
+
             NSLog(@"Validation response fetched from url:%@ with result:%@", url, dict);
             dispatch_sync(dispatch_get_main_queue(), ^{
                successBlock([[ValidationResponse alloc] initWithDictionary:dict]);
