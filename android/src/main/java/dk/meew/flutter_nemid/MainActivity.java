@@ -2,29 +2,20 @@ package dk.meew.flutter_nemid;
 
 import java.io.IOException;
 
-import java.util.Map;
 import java.util.Random;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
-import dk.meew.flutter_nemid.communication.RestJsonHelper;
-import dk.meew.flutter_nemid.communication.RetrofitHelper;
-import dk.meew.flutter_nemid.communication.SPRestService;
-import dk.meew.flutter_nemid.utilities.Base64;
 import dk.meew.flutter_nemid.utilities.Logger;
-import dk.meew.flutter_nemid.utilities.StringHelper;
-import dk.meew.flutter_nemid.communication.ValidationResponse;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -142,7 +133,13 @@ public class MainActivity extends Activity {
                 if(!flowResponse.isEmpty()){
                     if(flowResponse.length() > 20){
                         validateResponse();
+                    } else {
+                        setResult(Activity.RESULT_CANCELED);
+                        finish();
                     }
+                } else {
+                    setResult(Activity.RESULT_CANCELED);
+                    finish();
                 }
             }
         } else if (resultCode == Activity.RESULT_CANCELED) {
@@ -168,12 +165,14 @@ public class MainActivity extends Activity {
 
             client.newCall(request).enqueue(new Callback() {
                 String result = "";
+                String headers = "";
 
                 @Override
                 public void onFailure(Call call, IOException e) {
                     result = e.getMessage();
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra("result", result);
+                    resultIntent.putExtra("headers", headers);
                     setResult(Activity.RESULT_CANCELED, resultIntent);
                     finish();
                 }
@@ -184,12 +183,22 @@ public class MainActivity extends Activity {
                     Intent resultIntent = new Intent();
                     if (response.isSuccessful()) {
                         result = response.body().string();
+                        JSONObject headersObject = new JSONObject();
+                        try {
+                            for(String name : response.headers().names()){
+                                headersObject.put(name, response.header(name));
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        headers = headersObject.toString();
                         setResult(Activity.RESULT_OK, resultIntent);
                     } else {
                         setResult(Activity.RESULT_CANCELED, resultIntent);
                     }
 
                     resultIntent.putExtra("result", result);
+                    resultIntent.putExtra("headers", headers);
                     resultIntent.putExtra("status", response.code());
                     finish();
                 }

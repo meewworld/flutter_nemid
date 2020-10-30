@@ -49,6 +49,10 @@ class _MyAppState extends State<MyApp> {
         result += "Status: ${_response['status']}\n";
       }
 
+      if (_response.containsKey("headers")) {
+        result += "Headers: ${_response['headers']}\n";
+      }
+
       if (_response.containsKey("result")) {
         result += "Result: ${_response['result']}\n";
       }

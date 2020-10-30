@@ -99,8 +99,10 @@ public class FlutterNemidPlugin implements FlutterPlugin, MethodCallHandler, Act
         if(data != null) {
           if(data.getExtras().containsKey("result")) {
             String result = data.getStringExtra("result");
+            String headers = data.getStringExtra("headers");
             int status = data.getIntExtra("status", 503);
             response.put("result", result);
+            response.put("headers", headers);
             response.put("status", status);
             if (resultCode == Activity.RESULT_OK) {
               mResult.success(response.toString());

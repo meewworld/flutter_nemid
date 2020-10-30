@@ -13,6 +13,7 @@
 @interface ValidationResponse : NSObject
 
 @property (nonatomic, retain) NSString *result;
+@property (nonatomic, retain) NSString *headers;
 @property (nonatomic, retain) NSString *status;
 @property (nonatomic, retain) NSString *rememberUseridToken;
 @property (nonatomic, retain) NSString *logOutResult;
